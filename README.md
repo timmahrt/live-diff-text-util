@@ -9,14 +9,9 @@ It's not useful for very long texts with many differences.
 This first calculates the minimal edit distance and uses the associated mapping
 for all the rendering logic.
 
-To deploy run `./deploy.sh`
+To deploy run `./deploy.sh`. After a few minutes, they changes should be live on:
 
-It fails the last step for me, so after running it,
-```
-cd dist
-git push -f git@github.com:timmahrt/live-diff-text-util.git master:gh-pages
-```
-works for me.
+https://timmahrt.github.io/live-diff-text-util/
 
 ## Project setup
 ```

@@ -17,10 +17,10 @@
     <div class="dynamic-text" v-html="diffedTxtB">
     </div>
     <div class="wrong-pairs-table">
-      <div v-for="(pair, key) in indexToWrongCharPair" :key="key">
-        <span v-text="pair.left" class="wrong-pairs-cell"></span>
+      <div v-for="(pair, key) in indexToWrongCharPair" :key="key" class="wrong-pairs-row">
+        <span v-text="quote(pair.left)" class="wrong-pairs-cell"></span>
         <span v-text="getCharAsUnicodeCodePoint(pair.left)" class="wrong-pairs-cell"></span>
-        <span v-text="pair.right" class="wrong-pairs-cell"></span>
+        <span v-text="quote(pair.right)" class="wrong-pairs-cell"></span>
         <span v-text="getCharAsUnicodeCodePoint(pair.right)" class="wrong-pairs-cell"></span>
       </div>
     </div>
@@ -83,6 +83,9 @@ export default {
       let hexVal = charVal.charCodeAt().toString(16);
       let zeroPadding = "0".repeat(4 - hexVal.length);
       return 'U+' + zeroPadding + hexVal;
+    },
+    quote (txt) {
+      return '"' + txt + '"'
     }
   }
 }
@@ -93,13 +96,16 @@ export default {
 .wrong-pairs-table {
   padding: 10px;
 }
+.wrong-pairs-row {
+  padding-top: 10px;
+}
 .wrong-pairs-cell {
   padding: 5px;
 }
-.dynamic-text >>> .ignore-html {
+.dynamic-text ::v-deep(.ignore-html) {
   color: grey;
 }
-.dynamic-text >>> .bad-html {
+.dynamic-text ::v-deep(.bad-html) {
   color: red;
 }
 .text-entry {
