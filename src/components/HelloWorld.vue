@@ -1,46 +1,113 @@
 <template>
   <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+    Please enter the texts to diff in the following boxes and press the "Run diff" button
+    <div class="text-entry">
+      <input class="text-input" v-model="txtA" placeholder="enter text">
+    </div>
+    <div class="text-entry">
+      <input class="text-input"  v-model="txtB" placeholder="enter text">
+    </div>
+    <button
+      class='diff-button'
+      v-on:click="diffAndDecorate()">
+      Run Diff
+    </button>
+    <div class="dynamic-text" v-html="diffedTxtA">
+    </div>
+    <div class="dynamic-text" v-html="diffedTxtB">
+    </div>
+    <div class="wrong-pairs-table">
+      <div v-for="(pair, key) in indexToWrongCharPair" :key="key">
+        <span v-text="pair.left" class="wrong-pairs-cell"></span>
+        <span v-text="getCharAsUnicodeCodePoint(pair.left)" class="wrong-pairs-cell"></span>
+        <span v-text="pair.right" class="wrong-pairs-cell"></span>
+        <span v-text="getCharAsUnicodeCodePoint(pair.right)" class="wrong-pairs-cell"></span>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
+import { getDiffCharacters } from "../utils/getCharDiff";
 export default {
+  data: function () {
+    return {
+      txtA: "",
+      txtB: "",
+      diffedTxtA: "",
+      diffedTxtB: "",
+      indexToWrongCharPair: {}
+    }
+  },
   name: 'HelloWorld',
   props: {
     msg: String
+  },
+  methods: {
+    diffAndDecorate () {
+      let [pairs, diffCharIndicies] = getDiffCharacters(this.txtA, this.txtB);
+
+      let txtA = "";
+      let txtB = "";
+      pairs.forEach(([left, right], i) => {
+        txtA += this.decorateChar(left, i, diffCharIndicies);
+        txtB += this.decorateChar(right, i, diffCharIndicies);
+      });
+
+      this.diffedTxtA = txtA;
+      this.diffedTxtB = txtB;
+
+      this.buildWrongCharPairs(pairs, diffCharIndicies);
+    },
+    buildWrongCharPairs (pairs, diffCharIndicies) {
+      this.indexToWrongCharPair = {};
+      diffCharIndicies.forEach( (i) => {
+        this.indexToWrongCharPair[i] = {'left': pairs[i][0], 'right': pairs[i][1]};
+      })
+    },
+    decorateChar (char, currentIndex, skipIndexList) {
+      let retVal;
+      if (char === null) {
+        retVal = "<span class='ignore-html'>-</span>";
+      }
+      else if (skipIndexList.includes(currentIndex)) {
+        retVal = `<span class='bad-html'>${char}</span>`;
+      }
+      else {
+        retVal = char;
+      }
+
+      return retVal;
+    },
+    getCharAsUnicodeCodePoint (charVal) {
+      let hexVal = charVal.charCodeAt().toString(16);
+      let zeroPadding = "0".repeat(4 - hexVal.length);
+      return 'U+' + zeroPadding + hexVal;
+    }
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.wrong-pairs-table {
+  padding: 10px;
+}
+.wrong-pairs-cell {
+  padding: 5px;
+}
+.dynamic-text >>> .ignore-html {
+  color: grey;
+}
+.dynamic-text >>> .bad-html {
+  color: red;
+}
+.text-entry {
+  padding: 10px;
+}
+.text-input {
+  width: 500px;
+}
 h3 {
   margin: 40px 0 0;
 }
